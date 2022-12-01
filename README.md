@@ -3,5 +3,5 @@
 A tool to remove duplicate page number and only reserve the last page of that page number. Customized for automata course in NTU CSIE.
 
 ```sh
-python organize.py -d unorganized -o organized
+python organize.py -d unorganized/ -o organized/
 ```
