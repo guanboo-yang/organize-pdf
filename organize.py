@@ -14,8 +14,8 @@ class Logger(object):
         @param num: number of lines
         """
         self.num = num
-        for _ in range(num):
-            print("\033[K")
+        print("\033[K\n" * num, end="")
+        print("\033[?25l", end="", flush=True)
 
     def log(self, line: int, msg: str):
         """log message
@@ -24,9 +24,12 @@ class Logger(object):
         """
         line = self.num - line
         print(f"\033[{line}F", end="")
-        print("\033[K", end="")
+        print("\033[2K", end="")
         print(msg, end="")
-        print(f"\033[{line}E", end="")
+        print(f"\033[{line}E", end="", flush=True)
+
+    def __del__(self):
+        """destructor"""
         print("\033[?25h", end="", flush=True)
 
 
@@ -69,8 +72,6 @@ def organize_file(args: tuple):
     line, file_name, directory, output = args
     file_path = os.path.join(directory, file_name)
     spinner = itertools.cycle("\u280b\u2819\u2839\u2838\u283c\u2834\u2836\u2837\u2827\u280f")  # spinner
-    if not file_name.endswith(".pdf"):
-        return
     with open(file_path, "rb") as f:
         pdf = PdfFileReader(f)
         writer = PdfFileWriter()
@@ -99,7 +100,8 @@ def init_pool(_logger: Logger):
 
 if __name__ == "__main__":
     args = parse_args()
-    files = [f for f in os.listdir(args.directory) if os.path.isfile(os.path.join(args.directory, f))]
+    # find all pdf files in directory
+    files = [f for f in os.listdir(args.directory) if os.path.isfile(os.path.join(args.directory, f)) and f.endswith(".pdf")]
     files_num = len(files)
     logger = Logger(files_num)  # init logger
     with Pool(files_num, initializer=init_pool, initargs=(logger,)) as p:  # init pool to run in parallel
